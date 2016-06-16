@@ -1,0 +1,75 @@
+---
+roles:
+  primary:
+    private_networks:
+      - ip: '10.20.1.80'
+        auto_network: true
+    providers:
+      - type: virtualbox
+        customize:
+          - [modifyvm, !ruby/sym id, '--memory', 4096]
+          - [modifyvm, !ruby/sym id, '--ioapic', 'on']
+          - [modifyvm, !ruby/sym id, '--cpus', '4']
+    provisioners:
+      - type: hosts
+      - type: shell
+        inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
+      - type: shell
+        inline: "service iptables stop"
+      - type: pe_bootstrap
+        role: !ruby/sym master
+        answer_file: answers.txt
+        autosign: false
+      - type: shell
+        inline: "/opt/puppetlabs/puppet/bin/gem install puppetclassify --no-ri --no-rdoc"
+      - type: shell
+        inline: "/opt/puppetlabs/puppet/bin/ruby /vagrant/scripts/mom.rb"
+
+  secondary:
+    private_networks:
+      - ip: '0.0.0.0'
+        auto_network: true
+    providers:
+      - type: virtualbox
+        customize:
+          - [modifyvm, !ruby/sym id, '--memory', 2048]
+          - [modifyvm, !ruby/sym id, '--ioapic', 'on']
+          - [modifyvm, !ruby/sym id, '--cpus', '2']
+    provisioners:
+      - type: hosts
+      - type: shell
+        inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
+      - type: shell
+        inline: "service iptables stop"
+      - type: shell
+        inline: |-
+          mkdir -p /etc/puppetlabs/{facter/facts.d,puppet}
+          echo "pp_role=com_master" >> /etc/puppetlabs/facter/facts.d/pp_role.txt
+          curl -sk https://master.puppet.vm:8140/packages/current/install.bash | /bin/bash -s main:dns_alt_names='proxy,proxy.puppet.vm'
+
+  proxy:
+    private_networks:
+      - ip: '0.0.0.0'
+        auto_network: true
+    provisioners:
+      - {type: shell, inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"}
+      - {type: hosts}
+      - type: shell
+        inline: "service iptables stop"
+      - type: shell
+        inline: |-
+          mkdir -p /etc/puppetlabs/{facter/facts.d,puppet}
+          echo "pp_role=lb" >> /etc/puppetlabs/facter/facts.d/pp_role.txt
+          curl -sk https://master.puppet.vm:8140/packages/current/install.bash | /bin/bash 
+
+  posix_agent:
+    private_networks:
+      - {ip: '0.0.0.0', auto_network: true}
+    provisioners:
+      - {type: shell, inline: "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"}
+      - {type: hosts}
+      - type: shell
+        inline: |-
+          mkdir -p /etc/puppetlabs/{facter/facts.d,puppet}
+          curl -sk https://proxy.puppet.vm:8140/packages/current/install.bash | /bin/bash 
+  

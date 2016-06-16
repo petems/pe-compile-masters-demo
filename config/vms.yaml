@@ -1,0 +1,26 @@
+---
+vms:
+  - name: "master.puppet.vm"
+    box:  "puppetlabs/centos-6.6-64-nocm"
+    roles: [ "primary" ]
+    autostart: true
+
+  - name: "com0.puppet.vm"
+    box:  "puppetlabs/centos-6.6-64-nocm"
+    roles: [ "secondary" ]
+    autostart: false
+
+  - name: "com1.puppet.vm"
+    box:  "puppetlabs/centos-6.6-64-nocm"
+    roles: [ "secondary" ]
+    autostart: false
+
+  - name: "node.puppet.vm"
+    box: "puppetlabs/centos-6.6-64-nocm"
+    roles: [ "posix_agent" ]
+    autostart: false
+
+  - name: "proxy.puppet.vm"
+    box: "puppetlabs/centos-6.6-64-nocm"
+    roles: [ "proxy" ]
+    autostart: true
