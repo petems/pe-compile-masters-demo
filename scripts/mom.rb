@@ -161,6 +161,6 @@ def update_node_group(node_group,rule,classes)
   groups.update_group(group_hash)
 end
 
-config_r10k('https://github.com/beergeek/scale.git')
+config_r10k('hhttps://github.com/petems/compile-masters-control-repo.git')
 new_groups()
 change_classification()
