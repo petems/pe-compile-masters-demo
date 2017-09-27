@@ -4,8 +4,6 @@ require 'getoptlong'
 require 'puppet'
 require 'hiera'
 require 'facter'
-require 'r10k/action/deploy/environment'
-require 'r10k/action/runner'
 
 def cputs(string)
   puts "\033[1m#{string}\033[0m"
@@ -15,28 +13,7 @@ end
 Puppet.initialize_settings
 
 def config_r10k(remote)
-  cputs "Configuring r10k"
   load_classifier
-  conf = Puppet::Resource.new("file",'/etc/puppetlabs/r10k/r10k.yaml', :parameters => {
-    :ensure => 'file',
-    :owner  => 'root',
-    :group  => 'root',
-    :mode   => '0644',
-    :content => "cachedir: '/var/cache/r10k'\n\nsources:\n  code:\n    remote: '#{remote}'\n    basedir: '/etc/puppetlabs/code/environments'"
-  })
-  result, report = Puppet::Resource.indirection.save(conf)
-  puts report.logs
-
-  options = {
-    :puppetfile => true,
-    :config     => '/etc/puppetlabs/r10k/r10k.yaml',
-    :loglevel   => 'info'
-  }
-  my_action = R10K::Action::Deploy::Environment
-
-  runner = R10K::Action::Runner.new(options, [], my_action)
-  runner.call
-  cputs "Finished r10k"
   @classifier.update_classes.update
 end
 
@@ -161,6 +138,5 @@ def update_node_group(node_group,rule,classes)
   groups.update_group(group_hash)
 end
 
-config_r10k('https://github.com/petems/compile-masters-control-repo.git')
 new_groups()
 change_classification()

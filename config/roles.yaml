@@ -23,6 +23,10 @@ roles:
       - type: shell
         inline: "/opt/puppetlabs/puppet/bin/gem install puppetclassify --no-ri --no-rdoc"
       - type: shell
+        inline: "/bin/bash /vagrant/scripts/create_deploy_user.sh"
+      - type: shell
+        inline: "/bin/bash /vagrant/scripts/invoke_deployment.sh"
+      - type: shell
         inline: "/opt/puppetlabs/puppet/bin/ruby /vagrant/scripts/mom.rb"
 
   secondary:
